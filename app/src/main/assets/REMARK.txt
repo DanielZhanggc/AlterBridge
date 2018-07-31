@@ -1,0 +1,29 @@
+### BridgeWebView ###
+
+#js端触发handler后在客户端的方法shouldOverrideUrlLoading就会截取到url[yy://__QUEUE_MESSAGE__/]
+对截取到该url的处理逻辑如下:
+#
+1.立即进入客户端方法flushMessageQueue,该方法调用起BridgeWebView重新定义的方法loadUrl
+传入url[javascript:WebViewJavascriptBridge._fetchQueue();]和CallBackFunction对象记为callbackFunction
+调用webView的loadUrl方法加载url[javascript:WebViewJavascriptBridge._fetchQueue();]
+并且把CallBackFunction对象存入Map类型数据responseCallbacks,key为_fetchQueue,value即为CallBackFunction对象
+#
+2.上一步加载了webView的loadUrl所以shouldOverrideUrlLoading会再次截取到js加载的url,这个url在WebViewJavascriptBridge.js中处理过了
+生成的格式如下yy://return/_fetchQueue/[{"handlerName":"android","data":{"data":"The Data Is From HTML"},"callbackId":"cb_1_1529638859732"}]
+被截取到后交给客户端方法handlerReturnData处理,处理逻辑如下:
+#
+3.对url进行处理,处理后的格式如下[{"handlerName":"android","data":{"data":"The Data Is From HTML"},"callbackId":"cb_1_1529638859732"}]记为data
+再以key为_fetchQueue来从responseCallbacks取得CallBackFunction对象,用取得的CallBackFunction对象调用onCallBack方法并将data作为参数传入,
+以下是onCallBack的处理逻辑:
+#
+4.将data转化为Message类型的集合,注册了几个Handler就会有几个Message对象现取其中一个对象记为mssage,对该对象的处理逻辑如下:
+#
+5.先取mssage的responseId值,在没有responseId值的情况下,上面的示例数据就没有,就会创建新的CallBackFunction对象记为responseFunction,
+#
+6.根据handlerName取到注册插件时的BridgeHandler对象记为bridgeHandler[注册插件时将BridgeHandler对象放在messageHandlers中,用handlerName作为key存储的]
+用bridgeHandler来调用handler方法,将mssage的data值和responseFunction值传入进去,如果客户端需要把数据传给前端responseFunction直接调用onCallBack方法
+responseFunction的onCallBack方法中将callbackId的值赋值给responseId,将其他数据均放于responseData中并以此Message对象作为参数调用queueMessage方法
+#
+7.客户端调用了onCallBack方法最终将传入的mssage对象整理为如下url格式
+javascript:WebViewJavascriptBridge._handleMessageFromNative('{\"responseData\":\"{\\\"data\\\":\\\"The Data Is From Client’s Callback\\\"}\",\"responseId\":\"cb_2_1529629086326\"}');
+交给webview的方法loadUrl加载

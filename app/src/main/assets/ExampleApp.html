@@ -1,0 +1,85 @@
+<!doctype html>
+<html><head>
+	<style type='text/css'>
+		html { font-family:Helvetica; color:#222; }
+		h1 { color:steelblue; font-size:24px; margin-top:24px; }
+		button { margin:0 3px 10px; font-size:12px; }
+		.logLine { border-bottom:1px solid #ccc; padding:4px 2px; font-family:courier; font-size:11px; }
+	</style>
+</head><body>
+	<h1>AlterBridge Demo For MI_3</h1>
+	<script>
+
+	<!-- 发生错误,在标签log上面显示错误信息 -->
+	window.onerror = function(err) {
+		log('window.onerror: ' + err)
+	}
+
+	<!-- 定义连接JSBridge的方法 -->
+	function connectWebViewJavascriptBridge(callback) {
+		if (window.WebViewJavascriptBridge) {
+			callback(WebViewJavascriptBridge)
+		} else {
+			document.addEventListener('WebViewJavascriptBridgeReady', function() {
+				callback(WebViewJavascriptBridge)
+			}, false)
+		}
+	}
+
+	<!-- 自执行连接JSBridge方法 -->
+	connectWebViewJavascriptBridge(function(bridge) {
+		var uniqueId = 1
+		function log(message, data) {
+			var log = document.getElementById('log')
+			var el = document.createElement('div')
+			el.className = 'logLine'
+			el.innerHTML = uniqueId++ + '. ' + message + (data ? ':<br/>' + JSON.stringify(data) : '')
+			if (log.children.length) { log.insertBefore(el, log.children[0]) }
+			else { log.appendChild(el) }
+		}
+		bridge.init(function(message, responseCallback) {
+			log('Call InitHandler', message)
+			var data = { 'JS_InitHandler':'JS_InitHandler Response Data' }
+			log('JS_InitHandler Response Data', data)
+			responseCallback(data)
+		})
+
+		<!-- 注册插件(客户端待调用) -->
+		bridge.registerHandler('JSHandler', function(data, responseCallback) {
+			log('Call JSHandler', data)
+			var data = { 'JSHandler':'JSHandler Response Data' }
+			log('JSHandler Response Data', data)
+			responseCallback(data)
+		})
+
+        <!-- 添加按钮 Send message -->
+		var button = document.getElementById('buttons').appendChild(document.createElement('button'))
+		button.innerHTML = 'Send message'
+		button.onclick = function(e) {
+			e.preventDefault()
+			var data = {"DATA":"JS Call Client_InitHandler"}
+			log('Call Client_InitHandler', data)
+			bridge.send(data, function(response) {
+				log('Client_InitHandler Response Data', response)
+			})
+		}
+
+		document.body.appendChild(document.createElement('br'))
+
+		<!-- 添加按钮 callClient -->
+		var callClient = document.getElementById('buttons').appendChild(document.createElement('button'))
+		callClient.innerHTML = 'callClient'
+		callClient.onclick = function(e) {
+			e.preventDefault()
+			var data = {"DATA":"JS Call AlterBridge"}
+			log('Call AlterBridge',data)
+			bridge.callHandler('AlterBridge', data, function(response) {
+				log('AlterBridge Response Data', response)
+			})
+		}
+
+	})
+	</script>
+	<div id='buttons'></div>
+	<div id='log'></div>
+</body></html>
