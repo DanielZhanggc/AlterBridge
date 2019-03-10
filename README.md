@@ -1,5 +1,5 @@
 # AlterBridge
-Web-Native交互解决方案
+用于Web-Native交互解决方案
 
 # 原理  
 ## 引入JS文件 ##
