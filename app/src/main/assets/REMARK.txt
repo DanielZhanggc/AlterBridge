@@ -1,29 +1,23 @@
-### BridgeWebView ###
+### AlterBridge ###
 
-#js端触发handler后在客户端的方法shouldOverrideUrlLoading就会截取到url[yy://__QUEUE_MESSAGE__/]
-对截取到该url的处理逻辑如下:
-#
-1.立即进入客户端方法flushMessageQueue,该方法调用起BridgeWebView重新定义的方法loadUrl
-传入url[javascript:WebViewJavascriptBridge._fetchQueue();]和CallBackFunction对象记为callbackFunction
-调用webView的loadUrl方法加载url[javascript:WebViewJavascriptBridge._fetchQueue();]
-并且把CallBackFunction对象存入Map类型数据responseCallbacks,key为_fetchQueue,value即为CallBackFunction对象
-#
-2.上一步加载了webView的loadUrl所以shouldOverrideUrlLoading会再次截取到js加载的url,这个url在WebViewJavascriptBridge.js中处理过了
-生成的格式如下yy://return/_fetchQueue/[{"handlerName":"android","data":{"data":"The Data Is From HTML"},"callbackId":"cb_1_1529638859732"}]
-被截取到后交给客户端方法handlerReturnData处理,处理逻辑如下:
-#
-3.对url进行处理,处理后的格式如下[{"handlerName":"android","data":{"data":"The Data Is From HTML"},"callbackId":"cb_1_1529638859732"}]记为data
-再以key为_fetchQueue来从responseCallbacks取得CallBackFunction对象,用取得的CallBackFunction对象调用onCallBack方法并将data作为参数传入,
-以下是onCallBack的处理逻辑:
-#
-4.将data转化为Message类型的集合,注册了几个Handler就会有几个Message对象现取其中一个对象记为mssage,对该对象的处理逻辑如下:
-#
-5.先取mssage的responseId值,在没有responseId值的情况下,上面的示例数据就没有,就会创建新的CallBackFunction对象记为responseFunction,
-#
-6.根据handlerName取到注册插件时的BridgeHandler对象记为bridgeHandler[注册插件时将BridgeHandler对象放在messageHandlers中,用handlerName作为key存储的]
-用bridgeHandler来调用handler方法,将mssage的data值和responseFunction值传入进去,如果客户端需要把数据传给前端responseFunction直接调用onCallBack方法
-responseFunction的onCallBack方法中将callbackId的值赋值给responseId,将其他数据均放于responseData中并以此Message对象作为参数调用queueMessage方法
-#
-7.客户端调用了onCallBack方法最终将传入的mssage对象整理为如下url格式
-javascript:WebViewJavascriptBridge._handleMessageFromNative('{\"responseData\":\"{\\\"data\\\":\\\"The Data Is From Client’s Callback\\\"}\",\"responseId\":\"cb_2_1529629086326\"}');
-交给webview的方法loadUrl加载
+#引入JS文件#
+在html加载完成后走入onPageFinished()方法，调用excuteJavascript方法执行AlterBridge.js.txt的js方法
+
+#客户端注册插件#
+BridgeClient对象调用registerHandler方法将BridgeHandler以key-value的形式存入BridgeClient的成员变量bridgeHandlers中
+
+#前端注册插件#
+
+
+#前端调用客户端插件#
+1.调用shouldOverrideUrlLoading()方法[API],拦截URL,分析URL特征-->
+2.调用flushMessage()方法,[1]调用js方法_fetchQueue(),[2]定义JavascriptCallback对象，在这里分成两条线-->
+3.调用excuteJavascript方法,判断Android版本是否超过19，[3]调用webView.evaluateJavascript(方法){API},[4]{暂不研究}-->
+
+4.[3]调用[2]中定义的JavascriptCallback对象的方法{不为null},json字符串去反斜杠-->
+5.调用processQueueMessage()方法,将json格式字符串转换成BridgeMessage对象,创建BridgeCallback对象[5]
+通过message对象的callbackId从bridgeHandlers取BridgeHandler对象,调用其方法{在注册时已经重写}
+如果重写的方法调用了[5]的方法,整合数据,重复3步骤,开始调用JS方法_handleMessageFromObjC()-->
+
+#客户端调用前端插件#
+调用sendData()方法,创建BridgeMessage对象,重复3,调用js方法_handleMessageFromObjC()

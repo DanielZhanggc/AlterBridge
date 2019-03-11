@@ -12,7 +12,7 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.yitong.alterbridge.R;
-import com.yitong.alterbridge.jsbridge.WVJBWebViewClient;
+import com.yitong.alterbridge.jsbridge.BridgeClient;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -20,33 +20,30 @@ import org.json.JSONObject;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private WebView webView;
-    private Button bt;
-    private WVJBWebViewClient webViewClient;
+    private Button nativeBt;
+    private BridgeClient webViewClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
         webView = findViewById(R.id.webView);
-        bt = findViewById(R.id.bt);
-
+        nativeBt = findViewById(R.id.nativeBt);
         webView.loadUrl("file:///android_asset/ExampleApp.html");
-        webViewClient = new WVJBWebViewClient(webView);
+        nativeBt.setOnClickListener(this);
+
+        webViewClient = new BridgeClient(webView);
         webView.setWebViewClient(webViewClient);
 
-        //发送消息到前端并获取回调信息
-        bt.setOnClickListener(this);
-
         //注册能被JS调用的插件
-        webViewClient.registerHandler("AlterBridge", new WVJBWebViewClient.WVJBHandler() {
+        webViewClient.registerHandler("AlterBridge", new BridgeClient.BridgeHandler() {
             @Override
-            public void request(Object data, WVJBWebViewClient.WVJBResponseCallback callback) {
+            public void request(Object data, BridgeClient.BridgeCallback callback) {
                 try {
-                    // SystemClock.sleep(3000);
-                    Toast.makeText(MainActivity.this, data.toString(), Toast.LENGTH_LONG).show();
+                    showAlerDialog(data.toString());
                     JSONObject jsonObject = new JSONObject();
-                    jsonObject.put("Client", "Client Response Data");
+                    jsonObject.put("Client", "消息来源客户端");
                     callback.callback(jsonObject);
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -59,27 +56,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.bt:
+            case R.id.nativeBt:
                 try {
                     //调用JS init方法注册的插件
                     JSONObject jsonObject = new JSONObject();
-                    jsonObject.put("DATA", "Client Call JS_InitHandler");
-                    webViewClient.send(jsonObject, new WVJBWebViewClient.WVJBResponseCallback() {
-
+                    jsonObject.put("Client", "消息来源客户端");
+                    // 调用JS注册的插件JSHandler
+                    webViewClient.sendData(jsonObject, new BridgeClient.BridgeCallback() {
                         @Override
                         public void callback(Object data) {
-                            showAlerDialog("Response Data:" + data);
+                            showAlerDialog("Web:" + data);
                         }
-                    });
-                    // 调用JS注册的插件JSHandler
-//                JSONObject jsonObject = new JSONObject();
-//                jsonObject.put("DATA","Client Call JSHandler");
-//                webViewClient.callHandler("JSHandler", jsonObject, new WVJBWebViewClient.WVJBResponseCallback() {
-//                    @Override
-//                    public void callback(Object data) {
-//                        showAlerDialog("Response Data:"+data);
-//                    }
-//                });
+                    }, "JSHandler");
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -105,10 +93,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @SuppressLint("NewApi")
     private void showAlerDialog(String data) {
         AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle("Client Notice:")
+                .setTitle("前端消息:")
                 .setMessage(data)
-                .setPositiveButton("Confirm", null)
+                .setPositiveButton("确定", null)
+                .setCancelable(false)
                 .create();
+        dialog.setCanceledOnTouchOutside(false);
         dialog.show();
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextAppearance(R.style.MyCustomTabTextAppearance);
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.parseColor("#FF4081"));
