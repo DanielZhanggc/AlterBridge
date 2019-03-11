@@ -5,6 +5,9 @@
 1.将AlterBridge.js.txt文件复制到assets目录下  
 2.将类BridgeClient复制到项目中  
 3.WebView使用BridgeClient对象,在这里Android客户端的框架基本完成  
+```Java
+public static void main(String[] args){}
+```
 
 4.客户端注册插件供前端调用  
 ```Java
