@@ -3,9 +3,27 @@
 
 # 使用方法
 1.将AlterBridge.js.txt文件复制到assets目录下  
-2.将类BridgeClient复制到项目中  
-3.WebView使用BridgeClient对象,在这里Android客户端的框架基本完成  
-4.客户端注册插件供前端调用  
+2.引用导入的js文件  
+```Java
+@Override
+    public void onPageFinished(WebView view, String url) {
+        try {
+            InputStream is = webView.getContext().getAssets().open("AlterBridge.js.txt");
+            int size = is.available();
+            byte[] buffer = new byte[size];
+            is.read(buffer);
+            is.close();
+            String js = new String(buffer);
+            executeJavascript(js, null);
+            super.onPageFinished(view, url);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+```
+3.将类BridgeClient复制到项目中  
+4.WebView使用BridgeClient对象,在这里Android客户端的框架基本完成  
+5.客户端注册插件供前端调用  
 ```Java
         //注册能被JS调用的插件
         webViewClient.registerHandler("AlterBridge", new BridgeClient.BridgeHandler() {
@@ -22,7 +40,7 @@
             }
         });
 ```
-5.前端页面AlterBridge初始化  
+6.前端页面AlterBridge初始化  
 ```javascript
 function connectAlterBridge(callback) {
 		if (window.WebViewJavascriptBridge) {
@@ -42,7 +60,7 @@ connectAlterBridge(function(bridge) {
 		bridge.init();
 		});
 ```
-6.前端注册插件  
+7.前端注册插件  
 ```javascript
                <!-- 注册插件(客户端待调用) -->
 		bridge.registerHandler('JSHandler', function(data, responseCallback) {
@@ -52,7 +70,7 @@ connectAlterBridge(function(bridge) {
 			responseCallback(data);
 ```
  
-7.前端调用客户端插件  
+8.前端调用客户端插件  
 ```javascript
    function() {
       <!--构建前端返回客户端数据-->
@@ -63,7 +81,7 @@ connectAlterBridge(function(bridge) {
 			});
    };
 ```
-8.客户端调用前端插件  
+9.客户端调用前端插件  
 ```Java
                     //调用JS init方法注册的插件
                     JSONObject jsonObject = new JSONObject();
