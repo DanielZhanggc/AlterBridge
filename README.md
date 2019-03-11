@@ -80,3 +80,4 @@ connectAlterBridge(function(bridge) {
 ![image](https://github.com/DanielZhanggc/AlterBridge/blob/master/show.png)
 
 # APK下载
+![image](https://github.com/DanielZhanggc/AlterBridge/blob/master/apk_download.png)
