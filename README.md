@@ -7,7 +7,7 @@
 3.WebView使用BridgeClient对象,在这里Android客户端的框架基本完成  
 
 4.客户端注册插件供前端调用  
-'''Java
+```Java
         //注册能被JS调用的插件
         webViewClient.registerHandler("AlterBridge", new BridgeClient.BridgeHandler() {
             @Override
@@ -22,7 +22,7 @@
                 }
             }
         });
-'''
+```
 5.前端页面AlterBridge初始化  
 '''Java
 function connectAlterBridge(callback) {
