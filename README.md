@@ -27,7 +27,7 @@ public static void main(String[] args){}
         });
 ```
 5.前端页面AlterBridge初始化  
-'''Java
+```javascript
 function connectAlterBridge(callback) {
 		if (window.WebViewJavascriptBridge) {
 		    console.log('window已经包含WebViewJavascriptBridge对象');
@@ -45,19 +45,19 @@ connectAlterBridge(function(bridge) {
 		var uniqueId = 1
 		bridge.init();
 		});
-'''
+```
 6.前端注册插件  
-'''Java
+```javascript
                <!-- 注册插件(客户端待调用) -->
 		bridge.registerHandler('JSHandler', function(data, responseCallback) {
 			log('客户端发送数据[Client -> Web]', data);
 			var data = { 'Web':'消息来自前端' };
 			log('前端回复数据[Client -> Web]', data);
 			responseCallback(data);
-'''
+```
  
 7.前端调用客户端插件  
-'''Java
+```javascript
    function() {
       <!--构建前端返回客户端数据-->
 			var data = {"Web":"消息来源前端"};
@@ -66,9 +66,9 @@ connectAlterBridge(function(bridge) {
         <!--处理客户端返回前端的数据-->
 			});
    };
-'''
+```
 8.客户端调用前端插件  
-'''Java
+```Java
                     //调用JS init方法注册的插件
                     JSONObject jsonObject = new JSONObject();
                     jsonObject.put("Client", "消息来源客户端");
@@ -79,7 +79,7 @@ connectAlterBridge(function(bridge) {
                             //处理前端传到客户端数据
                         }
                     }, "JSHandler");
-'''
+```
 # 效果展示
 ![image](https://github.com/DanielZhanggc/AlterBridge/blob/master/show.png)
 
