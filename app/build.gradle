@@ -19,14 +19,6 @@ android {
         }
     }
 
-    android.applicationVariants.all { variant ->
-        variant.outputs.all {
-           println "-1-进入-1----"
-           variant.getPackageApplication().outputDirectory = new File("/home/www/.jenkins/workspace/AlterBridge/caches/jars-3")
-           outputFileName = "test.apk"
-       }
-    }
-
 }
 
 dependencies {
