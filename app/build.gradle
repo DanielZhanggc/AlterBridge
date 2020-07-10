@@ -21,16 +21,8 @@ android {
 
     applicationVariants.all { variant ->
        variant.outputs.each { output ->
-           def today = new Date().format('MMdd-HHmm');//自定义添加日期
-           def outputFile = output.outputFile;//def意为定义，其实你可以把它当做String outputFile = output.outputFile这样来理解
-           def newFilePath = "/home/www/.jenkins/workspace/AlterBridge/caches/jars-3";
-           if (outputFile != null && outputFile.name.endsWith('.apk')) {
-               def oldFileName = outputFile.name.replace(".apk","-" + today + "-v" + defaultConfig.versionName + ".apk");
-               File newFile = new File(newFilePath);//指定移动到的目标目录
-               output.outputFile = new File(newFile,oldFileName );//创建并生成目标目录
-//               outputFile.delete()
-           }else {
-           }
+           variant.getPackageApplication().outputDirectory = new File("/home/www/.jenkins/workspace/AlterBridge/caches/jars-3")
+           outputFileName = "test.apk"
        }
     }
 
