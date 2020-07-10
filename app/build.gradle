@@ -18,6 +18,14 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    
+    //打包输出
+    android.applicationVariants.all { variant ->
+        variant.outputs.all {
+            //输出文件名
+            outputFileName = "AlterBridge-v" + defaultConfig.versionName + ".apk"
+        }
+    }
 
 }
 
